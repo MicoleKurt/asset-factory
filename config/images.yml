@@ -1,0 +1,234 @@
+# Image manifest.
+#
+# Every asset must declare a descriptive filename and alt text before it can be
+# uploaded. Alt text describes what is visibly in the frame and asserts no
+# business fact -- no company name, no service claim, no location claim --
+# because none of those are supplied or approved in the Site Variable Sheet.
+#
+# All imagery is AI-generated (Google Gemini 2.5 Flash Image) and contains no
+# text, logos, branded vehicles, licence plates or identifiable faces, so that
+# no image asserts something the variable sheet does not supply.
+
+settings:
+  source_dir: "../"          # relative to the project root
+  max_width: 1600
+  hero_max_width: 2000
+  quality: 82
+  size_budget_kb: 250
+
+assets:
+  - source: A1.jpg
+    filename: home-hero-east-county-residential-property.webp
+    role: hero
+    page: homepage
+    alt: >-
+      Single-storey stucco home with a tile roof and drought-tolerant
+      landscaping below dry hills
+
+  - source: A2.jpg
+    filename: technician-inspecting-exterior-foundation-line.webp
+    role: cta
+    page: homepage
+    alt: >-
+      Technician crouched at the base of an exterior wall examining the
+      foundation line with a flashlight
+
+  - source: A3.jpg
+    filename: exterior-wood-trim-probe-inspection.webp
+    role: section
+    page: homepage
+    alt: >-
+      Gloved hand holding a probe against weathered painted wood trim beside
+      stucco
+
+  - source: A4.jpg
+    filename: roofline-vent-and-utility-penetration.webp
+    role: section
+    page: homepage
+    alt: >-
+      Exterior roofline vent with a metal screen and a utility conduit running
+      down the wall
+
+  # Replaced A5 with a stronger frame: the flashlight beam is actually on the
+  # mattress seam and both hands are in shot, which reads as an inspection
+  # rather than a stock bedroom. Old asset left in the media library unused
+  # rather than deleted -- removing media is destructive and reversing a
+  # deletion is not possible from a snapshot.
+  - source: A16.jpg
+    filename: mattress-seam-inspection-with-flashlight.webp
+    role: section
+    page: homepage
+    alt: >-
+      Gloved hand pressing the corner of a mattress while a flashlight beam
+      picks out the seam against a wooden bed frame
+
+  - source: A6.jpg
+    filename: under-sink-cabinet-flashlight-check.webp
+    role: section
+    page: homepage
+    alt: >-
+      Open cabinet beneath a kitchen sink with a flashlight directed at the
+      plumbing space
+
+  - source: A7.jpg
+    filename: exterior-perimeter-treatment-along-walkway.webp
+    role: section
+    page: homepage
+    alt: >-
+      Technician walking a concrete walkway with a handheld sprayer angled at
+      the base of a stucco wall
+
+  - source: A8.jpg
+    filename: roof-eave-and-rafter-tails-from-below.webp
+    role: section
+    page: homepage
+    alt: >-
+      Underside of a residential roof eave showing exposed rafter tails and
+      terracotta tile against the sky
+
+  - source: A9.jpg
+    filename: termite-hero-foundation-perimeter-and-vent.webp
+    role: hero
+    page: service_termite
+    alt: >-
+      Foundation perimeter of a home where soil meets the concrete stem wall,
+      with a crawlspace vent
+
+  - source: A10.jpg
+    filename: attic-framing-flashlight-inspection.webp
+    role: section
+    page: service_termite
+    alt: >-
+      Flashlight beam across rough framing timbers and plywood sheathing inside
+      a residential attic
+
+  - source: A11.jpg
+    filename: technician-recording-findings-on-clipboard.webp
+    role: section
+    page: homepage
+    # Note: this frame's landscaping is green lawn rather than the drought
+    # planting shared by the rest of the set. Placed in "Why Choose" and
+    # process sections where that reads as a different property, not an
+    # inconsistency within a service card row.
+    alt: >-
+      Technician standing outside a house recording findings on a clipboard
+
+  - source: A12.jpg
+    filename: lakeside-hero-residential-street-and-hills.webp
+    role: hero
+    page: location_lakeside
+    alt: >-
+      Quiet semi-rural residential street lined with eucalyptus and oak below
+      dry golden hills
+
+  - source: A13.png
+    filename: rural-property-with-detached-garage.webp
+    role: section
+    page: location_lakeside
+    alt: >-
+      Single-storey home with a separate detached garage and a gravel drive in
+      a dry rural setting
+
+  - source: A14.png
+    filename: about-hero-technician-at-service-vehicle.webp
+    role: hero
+    page: about
+    alt: >-
+      Technician organising equipment cases at the open rear doors of an
+      unmarked white cargo van
+
+  - source: A15.jpg
+    filename: inspection-tools-on-a-work-surface.webp
+    role: section
+    page: about
+    alt: >-
+      Flashlight, work gloves, a moisture meter and a blank notepad resting on
+      a wooden work surface
+
+# Placement policy.
+#
+# Only the homepage hero carries a semantic class (ap-hero-image) that
+# identifies what the slot is for. Every other placeholder slot is generic, and
+# the section headings on all four pages are still {{SERVICE_NAME}} and
+# {{SECTION_DESCRIPTION}}. An image cannot be assessed for relevance against a
+# heading that has no content yet.
+#
+# So placement runs in two phases:
+#   phase 1  hero slots only - unambiguously identifiable, and the most
+#            visible image on each page. Also removes the external hot-link to
+#            patterns.generatepress.com for those slots.
+#   phase 2  section slots - deferred until the approved content package is
+#            placed and each card has a real heading to match against.
+#
+# Run `images --phase 1` for the first, `--phase 2` once content is in.
+placement:
+  phase_1_roles: [hero]
+  phase_2_roles: [section, cta, detail]
+
+# --- Phase 2 placement map ---------------------------------------------------
+#
+# Each slot is addressed by its GenerateBlocks uniqueId and paired with the
+# heading that follows it in the block tree, so an image is matched to the card
+# it actually sits above rather than to an ordinal position.
+#
+# This was only possible AFTER the content pass filled the headings. While the
+# cards read {{SERVICE_NAME}}, image relevance could not be assessed at all.
+#
+# relevance:
+#   specific - the image depicts the named pest or the work that service does
+#   general  - the image is pest-control work but not specific to that pest.
+#              Disclosed rather than presented as a precise match.
+placements:
+  homepage:
+    - {slot: 4a05a449, asset: rural-property-with-detached-garage.webp,           heading: "Residential Pest Control category", relevance: general}
+    - {slot: 1b31c10a, asset: exterior-wood-trim-probe-inspection.webp,           heading: "Termite Control",       relevance: specific}
+    - {slot: 69f7caa5, asset: roofline-vent-and-utility-penetration.webp,         heading: "Rodent Control",        relevance: specific}
+    - {slot: eabd8ffc, asset: mattress-seam-inspection-with-flashlight.webp,        heading: "Bed Bug Control",       relevance: specific}
+    - {slot: 93440e95, asset: under-sink-cabinet-flashlight-check.webp,           heading: "Cockroach Control",     relevance: specific}
+    - {slot: 6d78a4ca, asset: exterior-perimeter-treatment-along-walkway.webp,    heading: "Ant Control",           relevance: specific}
+    - {slot: 990b2750, asset: roof-eave-and-rafter-tails-from-below.webp,         heading: "Bee and Wasp Control",  relevance: specific}
+    - {slot: d6a65423, asset: attic-framing-flashlight-inspection.webp,           heading: "Spider Control",        relevance: general}
+    - {slot: 5fd80884, asset: technician-inspecting-exterior-foundation-line.webp, heading: "Flea Control",         relevance: general}
+    - {slot: af83bb35, asset: lakeside-hero-residential-street-and-hills.webp,    heading: "Mosquito Control",      relevance: general}
+    - {slot: e995f4a5, asset: technician-recording-findings-on-clipboard.webp,    heading: "Why Choose",            relevance: specific}
+    - {slot: bff42ecb, asset: inspection-tools-on-a-work-surface.webp,            heading: "Our Process",           relevance: specific}
+    - {slot: 912e2d10, asset: about-hero-technician-at-service-vehicle.webp,      heading: "Local Pest Conditions", relevance: general}
+
+  location_lakeside:
+    - {slot: e666a388, asset: exterior-wood-trim-probe-inspection.webp,           heading: "Termite Control",       relevance: specific}
+    - {slot: a8be796d, asset: roofline-vent-and-utility-penetration.webp,         heading: "Rodent Control",        relevance: specific}
+    - {slot: f76e58d6, asset: mattress-seam-inspection-with-flashlight.webp,        heading: "Bed Bug Control",       relevance: specific}
+    - {slot: afcc7a50, asset: under-sink-cabinet-flashlight-check.webp,           heading: "Cockroach Control",     relevance: specific}
+    - {slot: bcb640d7, asset: exterior-perimeter-treatment-along-walkway.webp,    heading: "Ant Control",           relevance: specific}
+    - {slot: d681de94, asset: roof-eave-and-rafter-tails-from-below.webp,         heading: "Bee and Wasp Control",  relevance: specific}
+    - {slot: f069313d, asset: attic-framing-flashlight-inspection.webp,           heading: "Spider Control",        relevance: general}
+    - {slot: 4a293caa, asset: technician-inspecting-exterior-foundation-line.webp, heading: "Flea Control",         relevance: general}
+    - {slot: ff1957de, asset: rural-property-with-detached-garage.webp,           heading: "Mosquito Control",      relevance: general}
+    - {slot: dbee55ff, asset: about-hero-technician-at-service-vehicle.webp,      heading: "Pest Pressure",         relevance: general}
+    - {slot: 34555d1c, asset: technician-recording-findings-on-clipboard.webp,    heading: "Commercial / FAQs",     relevance: general}
+
+  about:
+    - {slot: 08e34824, asset: technician-inspecting-exterior-foundation-line.webp, heading: "Our Pest Control Services", relevance: specific}
+    - {slot: dd1eeebf, asset: lakeside-hero-residential-street-and-hills.webp,    heading: "Serving East County",   relevance: specific}
+    - {slot: 00d6a0c2, asset: rural-property-with-detached-garage.webp,           heading: "Serving East County",   relevance: specific}
+
+  service_termite:
+    - {slot: b19a1e29, asset: attic-framing-flashlight-inspection.webp,           heading: "Termite Treatment Options", relevance: specific}
+    - {slot: d4bdc9ad, asset: inspection-tools-on-a-work-surface.webp,            heading: "Plan Access, Preparation",  relevance: specific}
+    - {slot: 6f73e95c, asset: technician-recording-findings-on-clipboard.webp,    heading: "Plan Access, Preparation",  relevance: specific}
+
+# --- CTA band backgrounds ----------------------------------------------------
+#
+# One generateblocks/element per page uses a placeholder as a CSS background
+# rather than an <img>. They carry no alt text because a CSS background is
+# decorative. Missed by the media-block pass, which is why they are addressed
+# separately here.
+backgrounds:
+  homepage:
+    - {slot: df3ee8b0, asset: technician-inspecting-exterior-foundation-line.webp, heading: "CTA band"}
+  about:
+    - {slot: d477792a, asset: technician-recording-findings-on-clipboard.webp,     heading: "Call East County Exterminator"}
+  service_termite:
+    - {slot: b81e63a3, asset: exterior-wood-trim-probe-inspection.webp,            heading: "CTA band"}
+  location_lakeside:
+    - {slot: ea032f74, asset: inspection-tools-on-a-work-surface.webp,             heading: "CTA band"}

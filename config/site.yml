@@ -1,0 +1,249 @@
+# Asset Factory - target configuration.
+#
+# Everything site-specific lives here. The automation in src/ contains no
+# site names, URLs, page IDs, or field values. Pointing this file at another
+# clean clone is the whole of "porting" the workflow.
+
+target:
+  # Values of the form ${NAME} are read from the environment / .env file.
+  base_url: ${WP_BASE_URL}
+  auth:
+    user: ${WP_USER}
+    app_password: ${WP_APP_PASSWORD}
+
+source:
+  variable_sheet: inputs/site-variable-sheet.xlsx
+  variable_sheet_tab: East County Variables
+
+# Fields the workflow must never write, with the reason recorded so the
+# exception report can explain the omission rather than stay silent.
+policy:
+  never_write:
+    - field: rank_math_robots
+      reason: >-
+        Every page is set to noindex. This is a staging clone and the brief
+        prohibits publishing it publicly, so noindex is correct. Reported as
+        observed; deliberately not changed.
+    - field: slug
+      reason: >-
+        Only HOMEPAGE_SLUG is supplied and approved. No approved slug exists
+        for the About, Service or Location pages, so slugs are audited and
+        reported but never rewritten.
+  audit_only_patterns:
+    - '\{\{[A-Z0-9_]+\}\}'   # unresolved template placeholders in body content
+
+# --- Global components ------------------------------------------------------
+globals:
+  - id: site_title
+    label: Site title (Settings > General)
+    kind: option
+    option: blogname
+    variable: '{{BRAND_NAME}}'
+
+  # The components below are in assessment scope and ARE attempted on every
+  # run. Each depends on a variable that is currently unresolved, so each is
+  # refused and reported rather than quietly omitted. Declaring them here is
+  # what makes the refusal visible in the dry run and the exception report.
+  - id: phone_button_display
+    label: Global phone button (reusable block)
+    kind: reusable_block
+    variable: '{{PHONE_NUMBER}}'
+
+  - id: phone_button_link
+    label: Global phone button (reusable block)
+    kind: reusable_block
+    variable: '{{PHONE_TEL_LINK}}'
+
+  - id: primary_cta_text
+    label: Global primary CTA
+    kind: cta
+    variable: '{{PRIMARY_CTA_TEXT}}'
+
+  - id: primary_cta_url
+    label: Global primary CTA
+    kind: cta
+    variable: '{{PRIMARY_CTA_URL}}'
+
+  - id: secondary_cta_text
+    label: Global secondary CTA
+    kind: cta
+    variable: '{{SECONDARY_CTA_TEXT}}'
+
+  - id: secondary_cta_url
+    label: Global secondary CTA
+    kind: cta
+    variable: '{{SECONDARY_CTA_URL}}'
+
+  - id: form_destination
+    label: Global form (Fluent Forms)
+    kind: form
+    variable: '{{FORM_DESTINATION}}'
+
+  - id: footer_email
+    label: Footer contact email
+    kind: text
+    variable: '{{EMAIL}}'
+
+# --- Navigation -------------------------------------------------------------
+menus:
+  - menu_slug: primary-header
+    label: Primary Header
+    items:
+      - match_title: Homepage
+        variable: HOMEPAGE_NAME
+      - match_title: Service1 Name
+        variable: SERVICE_PAGE_NAME
+      - match_title: Location Page Template
+        variable: LOCATION_PAGE_NAME
+      # "Services" and "Service Areas" are dropdown parents pointing at "#".
+      # No approved label or destination is supplied, so they are left alone
+      # and reported.
+
+# --- Pages ------------------------------------------------------------------
+pages:
+  - id: homepage
+    page_type: Homepage
+    match:
+      slug: homepage-template
+    # The hero H1 is a core/heading block whose template formula is
+    # "{{BRAND_NAME}} | {{CORE_SERVICES}}". The sheet supplies an Approved
+    # HOMEPAGE_H1 instead, which takes precedence over the formula.
+    h1_variable: HOMEPAGE_H1
+    fields:
+      post_title: HOMEPAGE_NAME
+      rank_math_title: HOMEPAGE_SEO_TITLE
+      rank_math_description: HOMEPAGE_META_DESCRIPTION
+    # Focus keyword is not supplied as its own variable. It is set to an
+    # Approved value verbatim rather than composed, so no new word enters the
+    # site. See `focus_keyword_policy` at the foot of this file.
+    focus_keyword_from: '{{PRIMARY_SERVICE}}'
+
+  - id: about
+    page_type: About
+    match:
+      slug: about
+    fields:
+      post_title: ABOUT_PAGE_NAME
+      rank_math_title: ABOUT_SEO_TITLE
+      rank_math_description: ABOUT_META_DESCRIPTION
+    focus_keyword_from: '{{BRAND_NAME}}'
+
+  - id: service_termite
+    page_type: Service
+    match:
+      slug: service1_name
+    fields:
+      post_title: SERVICE_PAGE_NAME
+      rank_math_title: SERVICE_SEO_TITLE
+      rank_math_description: SERVICE_META_DESCRIPTION
+    focus_keyword_from: SERVICE_PAGE_NAME
+    # Approved instruction row, not a value row. Carried out by the
+    # linking step; see SERVICE_PAGE_FIRST_BRAND_NAME_LINK in the sheet.
+    first_brand_link: SERVICE_PAGE_FIRST_BRAND_NAME_LINK
+
+  - id: location_lakeside
+    page_type: Location
+    match:
+      slug: location-page-template
+    fields:
+      post_title: LOCATION_PAGE_NAME
+      rank_math_title: LOCATION_SEO_TITLE
+      rank_math_description: LOCATION_META_DESCRIPTION
+    focus_keyword_from: LOCATION_PAGE_NAME
+    first_brand_link: LOCATION_PAGE_FIRST_BRAND_NAME_LINK
+
+# Pages present on the clone that are deliberately excluded from the run.
+out_of_scope:
+  - reason: Explicitly out of scope per the assessment brief; must not be removed.
+    match: {title_contains: Contact}
+
+# --- Global template elements ------------------------------------------------
+# The site footer is a GeneratePress element, not page content, so it is not
+# reached by the page pass. It renders on every page, which makes it the most
+# visible place an unresolved value appears.
+global_elements:
+  - id: site_footer
+    rest_base: gp_elements
+    match_title: Site Footer
+    # Each repeated placeholder takes one item per slot from an Approved list.
+    list_backed:
+      SERVICE_NAME: '{{CORE_SERVICES}}'
+      SERVICE_AREA: '{{SERVICE_AREA_LIST}}'
+    # ADDRESS, PHONE_NUMBER and EMAIL are deliberately absent. None is
+    # supplied or approved, so they stay unresolved and are reported.
+
+# --- Pruning (opt-in, --prune) ----------------------------------------------
+#
+# Removes template card instances that hold no approved content. Stage 1 is
+# automatic and only ever removes a block whose visible text is ENTIRELY
+# unresolved placeholders. Stage 2 removes named section wrappers left holding
+# nothing but their heading, and is explicit by design: an automatic version
+# of this proposed deleting the testimonials, FAQ accordions and service-area
+# list, because a short heading inside heavy markup looks identical to an
+# accordion item. Heuristics cannot make that call.
+#
+# Each named section must still pass its guards at run time: the remaining
+# text must match `expect`, be short enough to be a lone heading, contain no
+# image and no surviving placeholder.
+prune:
+  sections:
+    homepage:
+      - slot: cad92bd8
+        expect: "Our Commercial Pest Control Services"
+        reason: >-
+          Second service group. The templates offer 17 service-card slots; the
+          approved content package supplies one list of 9. After stage 1 this
+          wrapper holds only its heading.
+    location_lakeside:
+      - slot: 8ef027d5
+        expect: "Our Commercial"
+        reason: >-
+          Same second-service-group surplus as the homepage. Its heading also
+          rendered incorrectly - the {{SERVICE_CATEGORY}} queue fed a full
+          section heading into a template expecting a short label, producing
+          "Our Commercial Residential Pest Control for Lakeside Homes
+          Services". Removed with the section.
+
+  # Blocks that repeat one already present earlier on the page. Removing the
+  # surplus service group orphaned its CTA banner, leaving two identical
+  # "Request a Quote" bands back to back. The guard is an invariant, not a
+  # heuristic: removal requires an EARLIER block with identical visible text,
+  # so a unique section cannot be deleted by this rule.
+  duplicates:
+    homepage:
+      - slot: deb98d69
+        expect: "Request a Quote"
+        reason: >-
+          Second CTA banner, orphaned when the surplus commercial service
+          group was removed. Byte-identical to the banner immediately above
+          it and rendered four bytes after it.
+
+# --- Focus keyword policy ----------------------------------------------------
+#
+# The Site Variable Sheet supplies no focus-keyword field, and the Standard
+# Variables Reference does not define one. Rank Math therefore reported 5 Basic
+# SEO and 8 Additional errors per page, all tracing to that single empty field.
+#
+# The keyword is NOT invented. Each page's keyword is an Approved value used
+# verbatim, or with trailing generic nouns trimmed by the same documented
+# transform used for {{SERVICE_CATEGORY}}. No word appears in a keyword that
+# does not already appear in an Approved cell.
+#
+# It is also not published content: Rank Math's focus keyword is an editorial
+# field that renders nowhere on the site.
+#
+# What was deliberately NOT done to raise the score:
+#   * SEO titles were not rewritten to add a "power word", a sentiment word or
+#     a number, despite Rank Math offering a Fix-with-AI button for each. Those
+#     titles are Approved values.
+#   * Slugs were not rewritten to contain the keyword. No approved slug exists
+#     for the About, Service or Location pages.
+#   * No Table of Contents plugin was installed.
+#
+# The score therefore improves but does not reach green, which is the correct
+# outcome: the remaining failures are all things that would require changing
+# approved content or installing software.
+focus_keyword_policy:
+  source: approved_values_only
+  transform: verbatim_or_trailing_noun_trim
+  disclosed_in: out/exception-report.md
