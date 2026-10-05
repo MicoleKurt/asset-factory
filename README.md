@@ -207,7 +207,6 @@ Without `--confirm` it prints what it would restore and exits. WordPress post
 revisions provide a second, independent recovery path for page content.
 
 ## Tests
-
 ```bash
 python -m pytest tests/ -q
 ```
